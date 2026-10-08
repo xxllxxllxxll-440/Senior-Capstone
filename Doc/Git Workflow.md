@@ -25,12 +25,6 @@ Always get the newest version of the project before making changes:
 git pull
 ```
 
-If you are using a Python virtual environment, activate it afterward if necessary:
-
-```bash
-source .venv/bin/activate
-```
-
 ## Making Changes
 
 Make your changes to the project normally.
@@ -92,13 +86,9 @@ git push
 
 ### Before Pushing
 
-Make sure the application still runs before pushing your changes:
+Make sure the application still runs before pushing your changes.
 
-```bash
-python run.py
-```
-
-If you changed Python code, templates, database code, or other important functionality, test the affected functionality before committing.
+If you changed code, templates, database code, or other important functionality, test the affected functionality before committing.
 
 ## Important: Do Not Commit Secrets
 

@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material3.AppScaffold
@@ -29,6 +30,7 @@ import androidx.wear.compose.material3.Text
 import com.example.biowatchcollar.presentation.theme.BioWatchCollarTheme
 import kotlin.time.Duration.Companion.milliseconds
 
+// Material Design 500/600 palette
 private val Green = Color(0xFF4CAF50)
 private val Yellow = Color(0xFFFFC107)
 private val Red = Color(0xFFE53935)
@@ -496,14 +498,15 @@ fun CalibrationScreen() {
                     "Your baseline calibration is complete!"
 
                 isRunning ->
-                    "Stay still while the vest measures vibration."
+                    "Stay still while the watch calibrates."
 
                 else ->
                     "Stay still during calibration. Keep your body relaxed."
             },
             fontSize = 11.sp,
             color = Color.LightGray,
-            lineHeight = 15.sp
+            lineHeight = 15.sp,
+            textAlign = TextAlign.Center
         )
 
         // BEGIN / RESET BUTTON

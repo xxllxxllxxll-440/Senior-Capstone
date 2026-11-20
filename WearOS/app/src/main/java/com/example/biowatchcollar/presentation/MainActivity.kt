@@ -1,6 +1,10 @@
 
 package com.example.biowatchcollar.presentation
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import kotlinx.coroutines.delay
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,10 +27,12 @@ import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.Text
 import com.example.biowatchcollar.presentation.theme.BioWatchCollarTheme
+import kotlin.time.Duration.Companion.milliseconds
 
 private val Green = Color(0xFF4CAF50)
 private val Yellow = Color(0xFFFFC107)
 private val Red = Color(0xFFE53935)
+private val Blue = Color(0xFF2196F3)
 private val CardBackground = Color(0xFF302B38)
 
 class MainActivity : ComponentActivity() {
@@ -45,7 +51,7 @@ fun WearApp() {
         AppScaffold {
             val pagerState = rememberPagerState(
                 initialPage = 0,
-                pageCount = { 2 }
+                pageCount = { 3 }
             )
 
             HorizontalPager(
@@ -55,6 +61,7 @@ fun WearApp() {
                 when (page) {
                     0 -> VestStatusScreen()
                     1 -> VestTestScreen()
+                    2 -> CalibrationScreen()
                 }
             }
         }
@@ -76,7 +83,7 @@ fun VestStatusScreen() {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 26.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -221,12 +228,6 @@ fun VestStatusScreen() {
                 color = Color.LightGray
             )
         }
-
-        Text(
-            "Swipe right for Vest Test",
-            fontSize = 10.sp,
-            color = Color.LightGray
-        )
     }
 }
 
@@ -254,7 +255,7 @@ fun VestTestScreen() {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 14.dp, vertical = 10.dp),
+            .padding(horizontal = 14.dp, vertical = 26.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(9.dp)
     ) {
@@ -366,11 +367,184 @@ fun VestTestScreen() {
                 else "TEST VIBRATION"
             )
         }
+    }
+}
+
+
+// --------------------------------------------------
+// SCREEN 3: CALIBRATION
+// --------------------------------------------------
+
+@Composable
+fun CalibrationScreen() {
+
+    var remainingSeconds by remember { mutableIntStateOf(15) }
+    var isRunning by remember { mutableStateOf(false) }
+    var isComplete by remember { mutableStateOf(false) }
+
+    // Countdown timer
+    LaunchedEffect(isRunning) {
+        if (isRunning) {
+            while (remainingSeconds > 0) {
+                delay(1000.milliseconds)
+                remainingSeconds--
+            }
+
+            isRunning = false
+            isComplete = true
+        }
+    }
+
+    val progress = remainingSeconds / 15f
+
+    val statusColor = when {
+        isComplete -> Green
+        isRunning -> Blue
+        else -> Color.Gray
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 14.dp, vertical = 26.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+
+        // HEADER
 
         Text(
-            text = "Swipe left for Vest Status",
-            fontSize = 10.sp,
-            color = Color.LightGray
+            text = "CALIBRATION",
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold
         )
+
+        // STATUS
+
+        Text(
+            text = when {
+                isComplete -> "CALIBRATION COMPLETE"
+                isRunning -> "MEASURING BASELINE"
+                else -> "READY"
+            },
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            color = statusColor
+        )
+
+        // CIRCULAR COUNTDOWN
+
+        Box(
+            modifier = Modifier.size(145.dp),
+            contentAlignment = Alignment.Center
+        ) {
+
+            Canvas(
+                modifier = Modifier.fillMaxSize()
+            ) {
+
+                // Background ring
+
+                drawArc(
+                    color = Color.Gray.copy(alpha = 0.25f),
+                    startAngle = -90f,
+                    sweepAngle = 360f,
+                    useCenter = false,
+                    style = Stroke(width = 12.dp.toPx())
+                )
+
+                // Progress ring
+
+                drawArc(
+                    color = statusColor,
+                    startAngle = -90f,
+                    sweepAngle = 360f * progress,
+                    useCenter = false,
+                    style = Stroke(
+                        width = 12.dp.toPx(),
+                        cap = StrokeCap.Round
+                    )
+                )
+            }
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Text(
+                    text = if (isComplete) "DONE"
+                    else "$remainingSeconds",
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = statusColor
+                )
+
+                Text(
+                    text = if (isComplete) "SUCCESS"
+                    else "SECONDS",
+                    fontSize = 10.sp
+                )
+            }
+        }
+
+        // INSTRUCTIONS
+
+        Text(
+            text = when {
+                isComplete ->
+                    "Your baseline calibration is complete!"
+
+                isRunning ->
+                    "Stay still while the vest measures vibration."
+
+                else ->
+                    "Stay still during calibration. Keep your body relaxed."
+            },
+            fontSize = 11.sp,
+            color = Color.LightGray,
+            lineHeight = 15.sp
+        )
+
+        // BEGIN / RESET BUTTON
+
+        if (!isRunning && !isComplete) {
+
+            Button(
+                onClick = {
+                    remainingSeconds = 15
+                    isRunning = true
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("BEGIN CALIBRATION")
+            }
+        }
+
+        if (isRunning) {
+
+            Button(
+                onClick = {
+                    isRunning = false
+                    remainingSeconds = 15
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("CANCEL")
+            }
+        }
+
+        if (isComplete) {
+
+            Button(
+                onClick = {
+                    remainingSeconds = 15
+                    isComplete = false
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("CALIBRATE AGAIN")
+            }
+        }
     }
 }

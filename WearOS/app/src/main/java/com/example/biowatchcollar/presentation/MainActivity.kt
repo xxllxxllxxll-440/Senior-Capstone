@@ -6,10 +6,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,8 +20,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material3.AppScaffold
+import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.Text
 import com.example.biowatchcollar.presentation.theme.BioWatchCollarTheme
+
+private val Green = Color(0xFF4CAF50)
+private val Yellow = Color(0xFFFFC107)
+private val Red = Color(0xFFE53935)
+private val CardBackground = Color(0xFF302B38)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,23 +43,34 @@ class MainActivity : ComponentActivity() {
 fun WearApp() {
     BioWatchCollarTheme {
         AppScaffold {
-            VestStatusScreen()
+            val pagerState = rememberPagerState(
+                initialPage = 0,
+                pageCount = { 2 }
+            )
+
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                when (page) {
+                    0 -> VestStatusScreen()
+                    1 -> VestTestScreen()
+                }
+            }
         }
     }
 }
 
+// --------------------------------------------------
+// SCREEN 1: VEST STATUS
+// --------------------------------------------------
+
 @Composable
 fun VestStatusScreen() {
-    // SIMULATED DATA
-    // We will replace these values with BLE responses later.
-
     val batteryPercentage = 85
     val signalStrength = 4
     val estimatedTime = "14h 30m"
     val isConnected = true
-
-    val green = Color(0xFF4CAF50)
-    val red = Color(0xFFE53935)
 
     Column(
         modifier = Modifier
@@ -61,26 +80,16 @@ fun VestStatusScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-
-        // HEADER
-
         Text(
             text = "VEST STATUS",
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold
         )
 
-        // CONNECTION STATUS
-
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(50))
-                .background(
-                    if (isConnected)
-                        green.copy(alpha = 0.20f)
-                    else
-                        red.copy(alpha = 0.20f)
-                )
+                .background(Green.copy(alpha = 0.20f))
                 .padding(horizontal = 14.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -88,7 +97,7 @@ fun VestStatusScreen() {
                 modifier = Modifier
                     .size(8.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(if (isConnected) green else red)
+                    .background(if (isConnected) Green else Red)
             )
 
             Spacer(modifier = Modifier.width(7.dp))
@@ -97,44 +106,29 @@ fun VestStatusScreen() {
                 text = if (isConnected) "CONNECTED" else "DISCONNECTED",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (isConnected) green else red
+                color = if (isConnected) Green else Red
             )
         }
-
-        // BATTERY AND SIGNAL CARDS
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-
-            // BATTERY
+            // BATTERY CARD
 
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(
-                        androidx.wear.compose.material3.MaterialTheme
-                            .colorScheme.surfaceContainer
-                    )
+                    .background(CardBackground)
                     .padding(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-                Text(
-                    text = "BATTERY",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Text("BATTERY", fontSize = 10.sp, fontWeight = FontWeight.Bold)
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Battery bars
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(3.dp)
-                ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                     repeat(5) { index ->
                         Box(
                             modifier = Modifier
@@ -142,7 +136,7 @@ fun VestStatusScreen() {
                                 .height(19.dp)
                                 .clip(RoundedCornerShape(3.dp))
                                 .background(
-                                    if (index < 4) green
+                                    if (index < 4) Green
                                     else Color.Gray.copy(alpha = 0.3f)
                                 )
                         )
@@ -152,31 +146,23 @@ fun VestStatusScreen() {
                 Spacer(modifier = Modifier.height(7.dp))
 
                 Text(
-                    text = "$batteryPercentage%",
+                    "$batteryPercentage%",
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
 
-            // SIGNAL
+            // SIGNAL CARD
 
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(
-                        androidx.wear.compose.material3.MaterialTheme
-                            .colorScheme.surfaceContainer
-                    )
+                    .background(CardBackground)
                     .padding(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-                Text(
-                    text = "SIGNAL",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Text("SIGNAL", fontSize = 10.sp, fontWeight = FontWeight.Bold)
 
                 Spacer(modifier = Modifier.height(5.dp))
 
@@ -192,7 +178,7 @@ fun VestStatusScreen() {
                                 .height((7 + index * 5).dp)
                                 .clip(RoundedCornerShape(2.dp))
                                 .background(
-                                    if (index < signalStrength) green
+                                    if (index < signalStrength) Green
                                     else Color.Gray.copy(alpha = 0.3f)
                                 )
                         )
@@ -201,17 +187,7 @@ fun VestStatusScreen() {
 
                 Spacer(modifier = Modifier.height(7.dp))
 
-                Text(
-                    text = when (signalStrength) {
-                        4 -> "Good"
-                        3 -> "Fair"
-                        2 -> "Weak"
-                        1 -> "Poor"
-                        else -> "None"
-                    },
-                    fontSize = 19.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Text("Good", fontSize = 19.sp, fontWeight = FontWeight.Bold)
             }
         }
 
@@ -221,16 +197,12 @@ fun VestStatusScreen() {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(14.dp))
-                .background(
-                    androidx.wear.compose.material3.MaterialTheme
-                        .colorScheme.surfaceContainer
-                )
+                .background(CardBackground)
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Text(
-                text = "ESTIMATED TIME REMAINING",
+                "ESTIMATED TIME REMAINING",
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -238,26 +210,167 @@ fun VestStatusScreen() {
             Spacer(modifier = Modifier.height(5.dp))
 
             Text(
-                text = estimatedTime,
+                estimatedTime,
                 fontSize = 23.sp,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
-                text = "Until charging is needed",
+                "Until charging is needed",
                 fontSize = 10.sp,
-                color = androidx.wear.compose.material3.MaterialTheme
-                    .colorScheme.onSurfaceVariant
+                color = Color.LightGray
             )
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            "Swipe right for Vest Test",
+            fontSize = 10.sp,
+            color = Color.LightGray
+        )
+    }
+}
+
+// --------------------------------------------------
+// SCREEN 2: VEST TEST
+// --------------------------------------------------
+
+@Composable
+fun VestTestScreen() {
+
+    // Temporary UI state.
+    // Eventually these values will be connected to BLE.
+
+    var vibrationStrength by remember { mutableIntStateOf(5) }
+    var testStatus by remember { mutableStateOf("NONE") }
+
+    val statusColor = when (testStatus) {
+        "SENDING" -> Yellow
+        "VIBRATING" -> Green
+        "FAULT" -> Red
+        else -> Color.Gray
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(9.dp)
+    ) {
+
+        // HEADER
 
         Text(
-            text = "BioWatch Vest System",
+            text = "VEST TEST",
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        // CURRENT TEST STATUS
+
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(50))
+                .background(statusColor.copy(alpha = 0.18f))
+                .padding(horizontal = 12.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(7.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(statusColor)
+            )
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+            Text(
+                text = when (testStatus) {
+                    "SENDING" -> "SENDING"
+                    "VIBRATING" -> "VIBRATING"
+                    "FAULT" -> "FAULT"
+                    else -> "NO TEST"
+                },
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = statusColor
+            )
+        }
+
+        // VIBRATION STRENGTH DISPLAY
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(CardBackground)
+                .padding(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                "VIBRATION STRENGTH",
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                "$vibrationStrength / 10",
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            // Strength adjustment buttons
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = {
+                        vibrationStrength =
+                            (vibrationStrength - 1).coerceAtLeast(1)
+                    },
+                    enabled = vibrationStrength > 1
+                ) {
+                    Text("-")
+                }
+
+                Button(
+                    onClick = {
+                        vibrationStrength =
+                            (vibrationStrength + 1).coerceAtMost(10)
+                    },
+                    enabled = vibrationStrength < 10
+                ) {
+                    Text("+")
+                }
+            }
+        }
+
+        // TEST BUTTON
+
+        Button(
+            onClick = {
+                testStatus = when (testStatus) {
+                    "VIBRATING" -> "NONE"
+                    else -> "VIBRATING"
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                if (testStatus == "VIBRATING") "STOP TEST"
+                else "TEST VIBRATION"
+            )
+        }
+
+        Text(
+            text = "Swipe left for Vest Status",
             fontSize = 10.sp,
-            color = androidx.wear.compose.material3.MaterialTheme
-                .colorScheme.onSurfaceVariant
+            color = Color.LightGray
         )
     }
 }
